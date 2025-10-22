@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<title>Генератор паролей</title>
+<style>
+  /* Добавил стиля */
+  body {
+    font-family: Arial, sans-serif;
+    background: #f0f0f0;
+    padding: 20px;
+  }
+  .container {
+    background: #fff;
+    max-width: 500px;
+    margin: auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  h1 {
+    text-align: center;
+  }
+  label {
+    display: block;
+    margin-top: 10px;
+  }
+  input[type="number"] {
+    width: 60px;
+    margin-left: 10px;
+  }
+  input[type="checkbox"] {
+    margin-right: 10px;
+  }
+  button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: #007BFF;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #0069d9;
+  }
+  #result {
+    margin-top: 20px;
+    font-family: monospace;
+    padding: 10px;
+    background: #eee;
+    border-radius: 4px;
+    word-break: break-word;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Генератор паролей</h1>
+  
+  <!-- Ввод параметров пароля -->
+  <label>
+    Длина.пароля:
+    <input type="number" id="length" value="12" min="4" max="50" />
+  </label>
+
+  <label>
+    Мин.букв:
+    <input type="number" id="minLetters" value="4" min="0" max="50" />
+  </label>
+
+  <label>
+    Мин.цифр:
+    <input type="number" id="minDigits" value="2" min="0" max="50" />
+  </label>
+
+  <label>
+    Мин.символов:
+    <input type="number" id="minSymbols" value="2" min="0" max="50" />
+  </label>
+
+  <!-- Опции включения типов символов -->
+  <label>
+    <input type="checkbox" id="includeLetters" checked />
+    Включить буквы
+  </label>
+  <label>
+    <input type="checkbox" id="includeDigits" checked />
+    Включить цифры
+  </label>
+  <label>
+    <input type="checkbox" id="includeSymbols" checked />
+    Включить символы
+  </label>
+
+  <!-- Кнопка запуска генерации -->
+  <button id="generateBtn">Генерировать пароль</button>
+
+  <!-- Область для вывода результата -->
+  <div id="result"></div>
+</div>
+
+<script>
+  // наборы символов для генерации
+  const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const digits = '0123456789';
+  const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+  // Обработчик клика по кнопке
+  document.getElementById('generateBtn').addEventListener('click', function() {
+    // Шаг 1: Собираем параметры из формы
+    const len = parseInt(document.getElementById('length').value); // Общая длина пароля
+    const minL = parseInt(document.getElementById('minLetters').value); // Минимум букв
+    const minD = parseInt(document.getElementById('minDigits').value); // Минимум цифр
+    const minS = parseInt(document.getElementById('minSymbols').value); // Минимум символов
+
+    const useLetters = document.getElementById('includeLetters').checked;
+    const useDigits = document.getElementById('includeDigits').checked;
+    const useSymbols = document.getElementById('includeSymbols').checked;
+
+    // сумма минимальных требований не должна превышать длину пароля
+    const totalMin = minL + minD + minS;
+    if (totalMin > len) {
+      alert('Общая минимальная длина превышает выбранную длину пароля.');
+      return;
+    }
+
+    // Шаг 2: Инициализация переменных для генерации
+    let possibleChars = ''; // Общий пул символов для заполнения остальной части пароля
+    let passwordArr = [];   // Массив символов для формирования пароля
+
+    // Шаг 3: Генерация обязательных символов для каждого типа
+
+    // Добавление обязательных букв
+    if (useLetters && minL > 0) {
+      for (let i=0; i<minL; i++) {
+        const ch = letters[Math.floor(Math.random() * letters.length)];
+        passwordArr.push(ch);
+      }
+      possibleChars += letters;
+    }
+
+    // Добавление обязательных цифр
+    if (useDigits && minD > 0) {
+      for (let i=0; i<minD; i++) {
+        const ch = digits[Math.floor(Math.random() * digits.length)];
+        passwordArr.push(ch);
+      }
+      possibleChars += digits;
+    }
+
+    // Добавление обязательных символов
+    if (useSymbols && minS > 0) {
+      for (let i=0; i<minS; i++) {
+        const ch = symbols[Math.floor(Math.random() * symbols.length)];
+        passwordArr.push(ch);
+      }
+      possibleChars += symbols;
+    }
+
+    // Шаг 4: Заполнение оставшейся части пароля случайными символами из общего пула
+    while (passwordArr.length < len) {
+      if (possibleChars.length === 0) {
+        // Если не выбран ни один тип символов, выводим ошибку
+        alert('Выберите хотя бы один тип символов.');
+        return;
+      }
+      const ch = possibleChars[Math.floor(Math.random() * possibleChars.length)];
+      passwordArr.push(ch);
+    }
+
+    // Шаг 5: Перемешивание массива символов, чтобы обязательные символы не стояли всегда в начале
+    for (let i = passwordArr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [passwordArr[i], passwordArr[j]] = [passwordArr[j], passwordArr[i]];
+    }
+
+    // Шаг 6: Вывод результата в блок
+    document.getElementById('result').textContent = passwordArr.join('');
+  });
+</script>
+</body>
+</html>
